@@ -2,7 +2,6 @@ import sys
 
 import cv2
 import numpy as np
-import keyboard
 
 
 def convolution(image, kernel):
@@ -40,37 +39,29 @@ def convolution(image, kernel):
 def blur(image):
     blur_kernel = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]])
     convolved_image = convolution(image, blur_kernel)
-
-    cv2.imshow("Immagine in input: ", image)
-    cv2.imshow("Immagine convoluta: ", convolved_image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
     return convolved_image
 
 
 def blur2(image):
     blur_kernel = np.array([[1, 2, 1], [2, 4, 2], [1, 2, 1]])
-
     convolved_image = convolution(image, blur_kernel)
-    cv2.imshow("Immagine in input: ", image)
-    cv2.imshow("Immagine convoluta: ", convolved_image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    return convolved_image
 
-def sharp(image):
-    blurred_image = blur(image)
-    height, width = image.shape
-    diff_image = np.zeros_like(image)
-    sharpened_image = np.zeros_like(image)
-    for i in range(height):
-        for j in range(width):
-            diff_image[i][j] = image[i][j] - blurred_image[i][j]
-            sharpened_image[i][j] = diff_image[i][j] + image[i][j]
 
-    cv2.imshow("Immagine in input: ", image)
-    cv2.imshow("Immagine sharpened: ", sharpened_image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+def sharp(image, k):
+    if k < 1:
+        print("Coefficiente di sharpening troppo piccolo!")
+        sys.exit()
+
+    for _ in range(k):
+        blurred_image = blur(image)
+        diff_image = np.zeros_like(image)
+        sharpened_image = np.zeros_like(image)
+
+        diff_image = image - blurred_image
+        image = image + diff_image
+
+    return image
 
 
 if __name__ == "__main__":
@@ -78,22 +69,35 @@ if __name__ == "__main__":
 
     while True:
         image = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
-
+        image = np.array(image)
         if image is not None:
             break
 
     height, width = image.shape
     print(f"Size: {height}x{width}")
     value = int(input("1. Applica sfocatura.\n2. Applica sfocatura gaussiana.\n3. Sharpen image.\n4. Altro\n\n"))
-
     if value == 1:
-        blur(image)
+        blurred_image = blur(image)
+        cv2.imshow("Immagine in input: ", image)
+        cv2.imshow("Immagine sfocata con filtro box: ", blurred_image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
         sys.exit()
     if value == 2:
-        blur2(image)
+        blurred_image = blur2(image)
+        cv2.imshow("Immagine in input: ", image)
+        cv2.imshow("Immagine sfocata con filtro gaussiano: ", blurred_image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
         sys.exit()
     if value == 3:
-        sharp(image)
+        k = int(input("Inserisci coefficiente di sharpening: "))
+        print("Caricamento...")
+        sharpened_image = sharp(image, k)
+        cv2.imshow("Immagine in input: ", image)
+        cv2.imshow(f"Immagine sharpened {k} volte: ", sharpened_image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
         sys.exit()
 
     rows = int(input("Inserisci il numero di righe: "))

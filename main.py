@@ -1,7 +1,9 @@
 import sys
+import time
 
 import cv2
 import numpy as np
+from matplotlib import pyplot as plt
 
 
 def convolution(image, kernel):
@@ -16,8 +18,6 @@ def convolution(image, kernel):
     # Setta a 0 tutti i valori dell'array dell'immagine convoluta
     convolved_image = np.zeros_like(image)
 
-    norm_value = np.sum(kernel)
-
     for i in range(image_height):
         for j in range(image_width):
 
@@ -30,20 +30,23 @@ def convolution(image, kernel):
                 for l in range(kernel_width):
                     sum += kernel[k][l] * image_region[k][l]
 
-            # Normalizzo l'immagine
-            convolved_image[i][j] = sum * (1 / norm_value)
+            convolved_image[i][j] = sum
 
     return convolved_image
 
 
 def blur(image):
     blur_kernel = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]])
+    norm_value = np.sum(kernel)
+    blur_kernel = blur_kernel * (1 / norm_value)
     convolved_image = convolution(image, blur_kernel)
     return convolved_image
 
 
 def blur2(image):
     blur_kernel = np.array([[1, 2, 1], [2, 4, 2], [1, 2, 1]])
+    norm_value = np.sum(kernel)
+    blur_kernel = blur_kernel * (1 / norm_value)
     convolved_image = convolution(image, blur_kernel)
     return convolved_image
 
@@ -63,8 +66,37 @@ def sharp(image, k):
 
     return image
 
+def sobel(image):
+    kernel_vertical = np.array([[-1, -2, -1], [0, 0, 0], [1, 2, 1]])
+    kernel_orizontal = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]])
+
+    horizontal = convolution(image, kernel_orizontal)
+    vertical = convolution(image, kernel_vertical)
+    total = horizontal + vertical
+    return horizontal, vertical, total
+
+
+def roberts(image):
+    kernel_1 = np.array([[1, 0], [0, -1]])
+    kernel_2 = np.array([[0, 1], [-1, 0]])
+
+    gx = convolution(image, kernel_1)
+    gy = convolution(image, kernel_2)
+    return gx, gy
+
+def fft(image):
+
+    fft_image = np.fft.fft2(image)
+
+    # Sposto l'origine al centro dell'immagine
+    fft_shifted = np.fft.fftshift(fft_image)
+    magnitude_spectrum = np.log(np.abs(fft_shifted) + 1)
+
+    # Visualizza l'immagine originale e il suo spettro di frequenz
+    return magnitude_spectrum
 
 if __name__ == "__main__":
+
     path = input("Inserisci percorso file: ")
 
     while True:
@@ -75,16 +107,28 @@ if __name__ == "__main__":
 
     height, width = image.shape
     print(f"Size: {height}x{width}")
-    value = int(input("1. Applica sfocatura.\n2. Applica sfocatura gaussiana.\n3. Sharpen image.\n4. Altro\n\n"))
+    value = int(input("1. Applica sfocatura.\n"
+                      "2. Applica sfocatura gaussiana.\n"
+                      "3. Sharpen image.\n"
+                      "4. Gradiente di Sobel\n"
+                      "5. Gradiente di Roberts\n"
+                      "6. Fast Fourier Transform\n"
+                      "6. Altro\n\n"))
     if value == 1:
+        start_time = time.time()
         blurred_image = blur(image)
+        end_time = time.time()
+        print("Time: ", end_time - start_time, "s")
         cv2.imshow("Immagine in input: ", image)
         cv2.imshow("Immagine sfocata con filtro box: ", blurred_image)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
         sys.exit()
     if value == 2:
+        start_time = time.time()
         blurred_image = blur2(image)
+        end_time = time.time()
+        print("Time: ", end_time - start_time, "s")
         cv2.imshow("Immagine in input: ", image)
         cv2.imshow("Immagine sfocata con filtro gaussiano: ", blurred_image)
         cv2.waitKey(0)
@@ -93,9 +137,36 @@ if __name__ == "__main__":
     if value == 3:
         k = int(input("Inserisci coefficiente di sharpening: "))
         print("Caricamento...")
+        start_time = time.time()
         sharpened_image = sharp(image, k)
+        end_time = time.time()
+        print("Time: ", end_time - start_time, "s")
         cv2.imshow("Immagine in input: ", image)
         cv2.imshow(f"Immagine sharpened {k} volte: ", sharpened_image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        sys.exit()
+    if value == 4:
+        start_time = time.time()
+        horizontal, vertical, total = sobel(image)
+        end_time = time.time()
+        print("Time: ", end_time - start_time, "s")
+        cv2.imshow("Bordi orizzontali: ", horizontal)
+        cv2.imshow("Bordi verticali: ", vertical)
+        cv2.imshow("Bordi totali: ", total)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        sys.exit()
+    if value == 6:
+        start_time = time.time()
+        spectrum = fft(image)
+        end_time = time.time()
+        print("Time: ", end_time - start_time, "s")
+        plt.subplot(121), plt.imshow(image, cmap='gray')
+        plt.title('Immagine originale'), plt.xticks([]), plt.yticks([])
+        plt.subplot(122), plt.imshow(spectrum, cmap='gray')
+        plt.title('Spettro di frequenza'), plt.xticks([]), plt.yticks([])
+        plt.show()
         cv2.waitKey(0)
         cv2.destroyAllWindows()
         sys.exit()

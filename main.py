@@ -35,17 +35,18 @@ def convolution(image, kernel):
     return convolved_image
 
 
-def blur(image):
-    blur_kernel = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]])
-    norm_value = np.sum(kernel)
-    blur_kernel = blur_kernel * (1 / norm_value)
+def blur(image, blur_kernel = None):
+    if blur_kernel is None:
+        blur_kernel = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]])
+        norm_value = np.sum(blur_kernel)
+        blur_kernel = blur_kernel * (1 / norm_value)
     convolved_image = convolution(image, blur_kernel)
     return convolved_image
 
 
 def blur2(image):
     blur_kernel = np.array([[1, 2, 1], [2, 4, 2], [1, 2, 1]])
-    norm_value = np.sum(kernel)
+    norm_value = np.sum(blur_kernel)
     blur_kernel = blur_kernel * (1 / norm_value)
     convolved_image = convolution(image, blur_kernel)
     return convolved_image
@@ -113,63 +114,76 @@ if __name__ == "__main__":
                       "4. Gradiente di Sobel\n"
                       "5. Gradiente di Roberts\n"
                       "6. Fast Fourier Transform\n"
-                      "6. Altro\n\n"))
-    if value == 1:
-        start_time = time.time()
-        blurred_image = blur(image)
-        end_time = time.time()
-        print("Time: ", end_time - start_time, "s")
-        cv2.imshow("Immagine in input: ", image)
-        cv2.imshow("Immagine sfocata con filtro box: ", blurred_image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-        sys.exit()
-    if value == 2:
-        start_time = time.time()
-        blurred_image = blur2(image)
-        end_time = time.time()
-        print("Time: ", end_time - start_time, "s")
-        cv2.imshow("Immagine in input: ", image)
-        cv2.imshow("Immagine sfocata con filtro gaussiano: ", blurred_image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-        sys.exit()
-    if value == 3:
-        k = int(input("Inserisci coefficiente di sharpening: "))
-        print("Caricamento...")
-        start_time = time.time()
-        sharpened_image = sharp(image, k)
-        end_time = time.time()
-        print("Time: ", end_time - start_time, "s")
-        cv2.imshow("Immagine in input: ", image)
-        cv2.imshow(f"Immagine sharpened {k} volte: ", sharpened_image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-        sys.exit()
-    if value == 4:
-        start_time = time.time()
-        horizontal, vertical, total = sobel(image)
-        end_time = time.time()
-        print("Time: ", end_time - start_time, "s")
-        cv2.imshow("Bordi orizzontali: ", horizontal)
-        cv2.imshow("Bordi verticali: ", vertical)
-        cv2.imshow("Bordi totali: ", total)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-        sys.exit()
-    if value == 6:
-        start_time = time.time()
-        spectrum = fft(image)
-        end_time = time.time()
-        print("Time: ", end_time - start_time, "s")
-        plt.subplot(121), plt.imshow(image, cmap='gray')
-        plt.title('Immagine originale'), plt.xticks([]), plt.yticks([])
-        plt.subplot(122), plt.imshow(spectrum, cmap='gray')
-        plt.title('Spettro di frequenza'), plt.xticks([]), plt.yticks([])
-        plt.show()
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-        sys.exit()
+                      "7. Altro\n\n"))
+    match value:
+        case 1:
+            start_time = time.time()
+            blurred_image = blur(image)
+            end_time = time.time()
+            print("Time: ", end_time - start_time, "s")
+            cv2.imshow("Immagine in input: ", image)
+            cv2.imshow("Immagine sfocata con filtro box: ", blurred_image)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+            sys.exit()
+        case 2:
+            start_time = time.time()
+            blurred_image = blur2(image)
+            end_time = time.time()
+            print("Time: ", end_time - start_time, "s")
+            cv2.imshow("Immagine in input: ", image)
+            cv2.imshow("Immagine sfocata con filtro gaussiano: ", blurred_image)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+            sys.exit()
+        case 3:
+            k = int(input("Inserisci coefficiente di sharpening: "))
+            print("Caricamento...")
+            start_time = time.time()
+            sharpened_image = sharp(image, k)
+            end_time = time.time()
+            print("Time: ", end_time - start_time, "s")
+            cv2.imshow("Immagine in input: ", image)
+            cv2.imshow(f"Immagine sharpened {k} volte: ", sharpened_image)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+            sys.exit()
+        case 4:
+            start_time = time.time()
+            horizontal, vertical, total = sobel(image)
+            end_time = time.time()
+            print("Time: ", end_time - start_time, "s")
+            cv2.imshow("Bordi orizzontali: ", horizontal)
+            cv2.imshow("Bordi verticali: ", vertical)
+            cv2.imshow("Bordi totali: ", total)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+            sys.exit()
+        case 5:
+            start_time = time.time()
+            gx, gy = roberts(image)
+            end_time = time.time()
+            print("Time: ", end_time - start_time, "s")
+            cv2.imshow("G_x: ", gx)
+            cv2.imshow("G_y: ", gy)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+            sys.exit()
+        case 6:
+            start_time = time.time()
+            spectrum = fft(image)
+            end_time = time.time()
+            print("Time: ", end_time - start_time, "s")
+            plt.subplot(121), plt.imshow(image, cmap='gray')
+            plt.title('Immagine originale'), plt.xticks([]), plt.yticks([])
+            plt.subplot(122), plt.imshow(spectrum, cmap='gray')
+            plt.title('Spettro di frequenza'), plt.xticks([]), plt.yticks([])
+            plt.show()
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+            sys.exit()
+        case _:
+            pass
 
     rows = int(input("Inserisci il numero di righe: "))
     kernel = []
@@ -179,4 +193,7 @@ if __name__ == "__main__":
         kernel.append(row)
 
     kernel = np.array(kernel)
-    print(kernel)
+    kernel = kernel * (1 / np.sum(kernel))
+    cv2.imshow("Immagine risultante: ", blur(image, kernel))
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()

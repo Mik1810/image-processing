@@ -35,7 +35,7 @@ def convolution(image, kernel):
     return convolved_image
 
 
-def blur(image, blur_kernel = None):
+def blur(image, blur_kernel=None):
     if blur_kernel is None:
         blur_kernel = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]])
         norm_value = np.sum(blur_kernel)
@@ -67,6 +67,7 @@ def sharp(image, k):
 
     return image
 
+
 def sobel(image):
     kernel_vertical = np.array([[-1, -2, -1], [0, 0, 0], [1, 2, 1]])
     kernel_orizontal = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]])
@@ -85,8 +86,8 @@ def roberts(image):
     gy = convolution(image, kernel_2)
     return gx, gy
 
-def fft(image):
 
+def fft(image):
     fft_image = np.fft.fft2(image)
 
     # Sposto l'origine al centro dell'immagine
@@ -95,6 +96,37 @@ def fft(image):
 
     # Visualizza l'immagine originale e il suo spettro di frequenz
     return magnitude_spectrum
+
+
+def median(image, n, m):
+    image_height, image_width = image.shape
+
+    pad_height = n // 2
+    pad_width = m // 2
+
+    padded_image = np.pad(image, ((pad_height, pad_height), (pad_width, pad_width)), mode='constant')
+
+    # Setta a 0 tutti i valori dell'array dell'immagine
+    median_image = np.zeros_like(image)
+
+    for i in range(image_height):
+        for j in range(image_width):
+            # Le regioni estratte sono della stessa grandezza del kernel da applicare
+            image_region = padded_image[i:i + n, j:j + m]
+
+            # Applica il kernel alla regione dell'immagine
+            flattened = np.ravel(image_region)
+
+            # Calcolare il valore mediano
+            median_image[i][j] = np.median(flattened)
+    return median_image
+
+
+def laplace(image):
+    kernel1 = np.array([[0, 1, 0], [1, -4, 1], [0, 1, 0]])
+    kernel2 = np.array([[1, 1, 1], [1, -8, 1], [1, 1, 1]])
+    return convolution(image, kernel1), convolution(image, kernel2)
+
 
 if __name__ == "__main__":
 
@@ -114,7 +146,9 @@ if __name__ == "__main__":
                       "4. Gradiente di Sobel\n"
                       "5. Gradiente di Roberts\n"
                       "6. Fast Fourier Transform\n"
-                      "7. Altro\n\n"))
+                      "7. Filtro mediano\n"
+                      "8. Filtro laplaciano\n"
+                      "9. Altro\n\n"))
     match value:
         case 1:
             start_time = time.time()
@@ -179,6 +213,27 @@ if __name__ == "__main__":
             plt.subplot(122), plt.imshow(spectrum, cmap='gray')
             plt.title('Spettro di frequenza'), plt.xticks([]), plt.yticks([])
             plt.show()
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+            sys.exit()
+        case 7:
+            start_time = time.time()
+            median_image = median(image, 15, 15)
+            end_time = time.time()
+            print("Time: ", end_time - start_time, "s")
+            cv2.imshow("Immagine in input: ", image)
+            cv2.imshow("Immagine con filtro mediano: ", median_image)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+            sys.exit()
+        case 8:
+            start_time = time.time()
+            laplace_image1, laplace_image2 = laplace(image)
+            end_time = time.time()
+            print("Time: ", end_time - start_time, "s")
+            cv2.imshow("Immagine in input: ", image)
+            cv2.imshow("Immagine con filtro laplaciano 1: ", laplace_image1)
+            cv2.imshow("Immagine con filtro laplaciano 2: ", laplace_image2)
             cv2.waitKey(0)
             cv2.destroyAllWindows()
             sys.exit()

@@ -179,6 +179,40 @@ def salt_pepper_noise(image):
     return noisy_image
 
 
+def bit_slice(image):
+    masks = (1, 2, 4, 8, 16, 32, 64, 128)
+    height, width = image.shape
+    images = []
+
+    for k in range(len(masks)):
+        sliced_image = np.zeros_like(image)
+        for i in range(height):
+            for j in range(width):
+                sliced_image[i][j] = image[i][j] & masks[k]
+        images.append(sliced_image)
+
+    # Utilizza la somma delle ultime 4 componenti (8, 7, 6, 5)
+    # Comprime l'immagine usando solo 4 bit, la metà rispetto all'originale
+    image_compressed = sum([i for i in images[-4:]])
+    images.append(image_compressed)
+    fig, axs = plt.subplots(3, 3, figsize=(12, 12))
+
+    for i in range(3):
+        for j in range(3):
+            axs[i, j].imshow(images[i * 3 + j], cmap='gray')
+            axs[i, j].axis('off')
+            if i == 2 and j == 2:
+                axs[i, j].set_title(f'Somma dai 4 livelli più significativi')
+            else:
+                axs[i, j].set_title(f'Bit {i * 3 + j + 1}')
+    plt.figure()
+    plt.imshow(image, cmap='gray')
+    plt.title('Immagine originale')
+    plt.axis('off')
+    plt.tight_layout()
+    plt.show()
+
+
 if __name__ == "__main__":
 
     path = input("Inserisci percorso file: ")
@@ -201,7 +235,8 @@ if __name__ == "__main__":
                       "8. Estrazione dei contorni con filtro laplaciano\n"
                       "9. Istrogramma\n"
                       "10. Rumore sale e pepe\n"
-                      "11. Altro\n\n"))
+                      "11. Bit Slicing Image\n"
+                      "12. Altro\n\n"))
     match value:
         case 1:
             start_time = time.time()
@@ -307,7 +342,14 @@ if __name__ == "__main__":
             cv2.waitKey(0)
             cv2.destroyAllWindows()
             sys.exit()
-
+        case 11:
+            start_time = time.time()
+            bit_slice(image)
+            end_time = time.time()
+            print(f"Time: {end_time - start_time}s")
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+            sys.exit()
         case _:
             pass
 

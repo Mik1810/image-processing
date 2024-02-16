@@ -1,6 +1,6 @@
 import sys
 import time
-
+import random
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
@@ -128,27 +128,80 @@ def laplace(image):
     return convolution(image, kernel1), convolution(image, kernel2)
 
 
+def histogram(image):
+    original_histogram = cv2.calcHist([image], [0], None, [256], [0, 256])
+
+    # Immagine equalizzata
+    equalized_image = cv2.equalizeHist(image)
+
+    # Istogramma equalizzato
+    equalized_histogram = cv2.calcHist([equalized_image], [0], None, [256], [0, 256])
+
+    # Visualizza l'immagine e l'istogramma
+    plt.figure(figsize=(12, 6))
+
+    plt.subplot(2, 2, 1)
+    plt.imshow(image, cmap='gray')
+    plt.title('Immagine originale')
+
+    plt.subplot(2, 2, 2)
+    plt.bar(np.arange(256), original_histogram[:, 0], color='black', width=1.0)
+    plt.title('Istogramma originale')
+    plt.xlabel('Livello di grigio')
+    plt.ylabel('Frequenza')
+
+    plt.subplot(2, 2, 3)
+    plt.imshow(equalized_image, cmap='gray')
+    plt.title('Immagine equalizzata')
+
+    plt.subplot(2, 2, 4)
+    plt.bar(np.arange(256), equalized_histogram[:, 0], color='black', width=1.0)
+    plt.title('Istogramma equalizzato')
+    plt.xlabel('Livello di grigio')
+    plt.ylabel('Frequenza')
+
+    plt.tight_layout()
+    plt.show()
+
+
+def salt_pepper_noise(image):
+    noisy_image = np.zeros_like(image)
+
+    image_height, image_width = image.shape
+    for i in range(image_height):
+        for j in range(image_width):
+            if random.randint(0, 20) == 0:
+                noisy_image[i][j] = 0
+            elif random.randint(0, 20) == 0:
+                noisy_image[i][j] = 255
+            else:
+                noisy_image[i][j] = image[i][j]
+    return noisy_image
+
+
 if __name__ == "__main__":
 
     path = input("Inserisci percorso file: ")
 
     while True:
-        image = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+        image = cv2.imread("./images/" + path, cv2.IMREAD_GRAYSCALE)
         image = np.array(image)
         if image is not None:
             break
 
     height, width = image.shape
     print(f"Size: {height}x{width}")
-    value = int(input("1. Applica sfocatura.\n"
+    value = int(input("1. Applica sfocatura con filtro box.\n"
                       "2. Applica sfocatura gaussiana.\n"
-                      "3. Sharpen image.\n"
-                      "4. Gradiente di Sobel\n"
-                      "5. Gradiente di Roberts\n"
+                      "3. Sharpen image\n"
+                      "4. Estrazione dei contorni con gradiente di Sobel\n"
+                      "5. Estrazione dei contorni con gradiente di Roberts\n"
                       "6. Fast Fourier Transform\n"
-                      "7. Filtro mediano\n"
-                      "8. Filtro laplaciano\n"
-                      "9. Altro\n\n"))
+                      "7. Denoising di un'immagine con filtro mediano\n"
+                      "8. Estrazione dei contorni con filtro laplaciano\n"
+                      "9. Istrogramma\n"
+                      "10. Rumore sale e pepe\n"
+                      "11. Altro\n\n"))
     match value:
         case 1:
             start_time = time.time()
@@ -237,6 +290,24 @@ if __name__ == "__main__":
             cv2.waitKey(0)
             cv2.destroyAllWindows()
             sys.exit()
+        case 9:
+            histogram(image)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+            sys.exit()
+        case 10:
+            start_time = time.time()
+            noisy_image = salt_pepper_noise(image)
+            denoised_image = median(image, 3, 3)
+            end_time = time.time()
+            print(f"Time: {end_time - start_time}s")
+            cv2.imshow("Immagine in input: ", image)
+            cv2.imshow("Immagine con filtro sale e pepe: ", noisy_image)
+            cv2.imshow("Immagine con rumore rimosso: ", denoised_image)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+            sys.exit()
+
         case _:
             pass
 

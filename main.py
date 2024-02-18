@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 import random
@@ -213,15 +214,98 @@ def bit_slice(image):
     plt.show()
 
 
+def threshold(image, k):
+
+    height, width = image.shape
+    thresholded_image = np.zeros_like(image)
+    for i in range(height):
+        for j in range(width):
+            if image[i][j] < k:
+                thresholded_image[i][j] = 0
+            else:
+                thresholded_image[i][j] = 255
+
+    return np.array(thresholded_image)
+
+
+def log_transform(image):
+    c1 = 255 / np.log(1 + np.max(image))
+    log_image = np.round((c1 * (np.log(image + 1)))).astype(np.uint8)
+    exp_image = ((np.exp(image / 255.0) - 1) / (np.e - 1) * 255).astype(np.uint8)
+    hist_original, _ = np.histogram(image, bins=256, range=(0, 256))
+    hist_log, _= np.histogram(log_image, bins=256, range=(0, 256))
+    hist_exp, _ = np.histogram(exp_image, bins=256, range=(0, 256))
+
+    # Plot
+    plt.figure(figsize=(12, 10))
+
+    # Immagini
+    plt.subplot(3, 3, 1)
+    plt.imshow(image, cmap='gray')
+    plt.title('Immagine originale')
+    plt.axis('off')
+
+    plt.subplot(3, 3, 4)
+    plt.imshow(log_image, cmap='gray')
+    plt.title('Immagine trasformata con logaritmo')
+    plt.axis('off')
+
+    # Immagini
+    plt.subplot(3, 3, 7)
+    plt.imshow(exp_image, cmap='gray')
+    plt.title('Immagine trasformata con esponenziale')
+    plt.axis('off')
+
+    # Grafici delle funzioni
+    plt.subplot(3, 3, 2)
+    plt.plot(np.arange(256), np.arange(256), color='blue')
+    plt.title('Funzione identità')
+
+    plt.subplot(3, 3, 5)
+    x = np.arange(256)
+    y = np.log1p(np.arange(256)) * c1
+    plt.plot(x, y, color='orange')
+    plt.title('Funzione logaritmo')
+
+    plt.subplot(3, 3, 8)
+    plt.plot(y, x, color='red')
+    plt.title('Funzione esponenziale')
+
+    # Istogrammi
+    plt.subplot(3, 3, 3)
+    plt.bar(np.arange(256), hist_original, color='blue', alpha=0.7)
+    plt.title('Istogramma dell\'immagine originale')
+    plt.xlabel('Intensità')
+    plt.ylabel('Numero di pixel')
+
+    plt.subplot(3, 3, 6)
+    plt.bar(np.arange(256), hist_log, color='orange', alpha=0.7)
+    plt.title('Istogramma dell\'immagine trasformata con log')
+    plt.xlabel('Intensità')
+    plt.ylabel('Numero di pixel')
+
+    plt.subplot(3, 3, 9)
+    plt.bar(np.arange(256), hist_exp, color='red', alpha=0.7)
+    plt.title('Istogramma dell\'immagine trasformata con log inverso')
+    plt.xlabel('Intensità')
+    plt.ylabel('Numero di pixel')
+
+    plt.tight_layout()
+    plt.show()
+
 if __name__ == "__main__":
 
-    path = input("Inserisci percorso file: ")
+    image = None
 
     while True:
-        image = cv2.imread("./images/" + path, cv2.IMREAD_GRAYSCALE)
-        image = np.array(image)
-        if image is not None:
+        path = input("Inserisci percorso file: ")
+        if os.path.isfile("./images/" + path):
+            image = cv2.imread("./images/" + path, cv2.IMREAD_GRAYSCALE)
+            image = np.array(image)
             break
+        else:
+            print("File non trovato!")
+            continue
 
     height, width = image.shape
     print(f"Size: {height}x{width}")
@@ -236,7 +320,9 @@ if __name__ == "__main__":
                       "9. Istrogramma\n"
                       "10. Rumore sale e pepe\n"
                       "11. Bit Slicing Image\n"
-                      "12. Altro\n\n"))
+                      "12. Threshold\n"
+                      "13. log e exp transform\n"
+                      "14. Altro\n\n"))
     match value:
         case 1:
             start_time = time.time()
@@ -349,6 +435,20 @@ if __name__ == "__main__":
             print(f"Time: {end_time - start_time}s")
             cv2.waitKey(0)
             cv2.destroyAllWindows()
+            sys.exit()
+        case 12:
+            k = int(input("Inserisci il valore di soglia: "))
+            start_time = time.time()
+            thresholded_image = threshold(image, k)
+            end_time = time.time()
+            print(f"Time: {end_time - start_time}s")
+            cv2.imshow("Immagine in input: ", image)
+            cv2.imshow("Immagine thresholded: ", thresholded_image)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+            sys.exit()
+        case 13:
+            log_transform(image)
             sys.exit()
         case _:
             pass

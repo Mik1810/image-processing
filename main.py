@@ -1,3 +1,4 @@
+import cmath
 import os
 import sys
 import time
@@ -215,7 +216,6 @@ def bit_slice(image):
 
 
 def threshold(image, k):
-
     height, width = image.shape
     thresholded_image = np.zeros_like(image)
     for i in range(height):
@@ -233,7 +233,7 @@ def log_transform(image):
     log_image = np.round((c1 * (np.log(image + 1)))).astype(np.uint8)
     exp_image = ((np.exp(image / 255.0) - 1) / (np.e - 1) * 255).astype(np.uint8)
     hist_original, _ = np.histogram(image, bins=256, range=(0, 256))
-    hist_log, _= np.histogram(log_image, bins=256, range=(0, 256))
+    hist_log, _ = np.histogram(log_image, bins=256, range=(0, 256))
     hist_exp, _ = np.histogram(exp_image, bins=256, range=(0, 256))
 
     # Plot
@@ -293,6 +293,28 @@ def log_transform(image):
     plt.tight_layout()
     plt.show()
 
+
+def dft(image):
+    M, N = image.shape
+    dft2d = np.zeros((M, N), dtype=complex)
+    for k in range(M):
+        for l in range(N):
+            sum = 0
+            for m in range(M):
+                for n in range(N):
+                    e = cmath.exp(- 2j * np.pi * ((k * m) / M + (l * n) / N))
+                    sum += image[m, n] * e
+            dft2d[k, l] = sum
+
+    magnitude_spectrum = 20 * np.log(np.abs(dft))
+
+    plt.figure(figsize=(6, 6))
+    plt.imshow(magnitude_spectrum, cmap='gray')
+    plt.title('Magnitude Spectrum')
+    plt.colorbar(format='%+2.0f dB')
+    plt.show()
+
+
 if __name__ == "__main__":
 
     image = None
@@ -322,7 +344,8 @@ if __name__ == "__main__":
                       "11. Bit Slicing Image\n"
                       "12. Threshold\n"
                       "13. log e exp transform\n"
-                      "14. Altro\n\n"))
+                      "14. Discrete Fourier Transform\n"
+                      "15. Altro\n\n"))
     match value:
         case 1:
             start_time = time.time()
@@ -449,6 +472,12 @@ if __name__ == "__main__":
             sys.exit()
         case 13:
             log_transform(image)
+            sys.exit()
+        case 14:
+            start_time = time.time()
+            dft(image)
+            end_time = time.time()
+            print(f"Time: {end_time - start_time}s")
             sys.exit()
         case _:
             pass

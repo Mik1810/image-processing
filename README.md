@@ -21,6 +21,9 @@ Il codice Python fornito contiene una serie di funzioni per l'elaborazione delle
 9. **Bit Slicing**: Questa funzione estrae i bit significativi dell'immagine per creare una nuova immagine con meno bit.
 
 10. **Thresholding**: Esegue il thresholding dell'immagine binarizzandola in base a un valore di soglia `k`. I pixel con intensità inferiore a `k` vengono impostati a 0, mentre quelli con intensità maggiore o uguale a `k` vengono impostati a 255.
+
 11. **Funzione logaritmo e esponenziale**: Applica una trasformazione logaritmica ed esponenziale all'immagine. Questa trasformazione può essere utilizzata per espandere (o diminuire nel caso dell'esponenziale) il range dinamico delle intensità dell'immagine, migliorando il contrasto nei dettagli più scuri (o più chiari). La funzione  permette la visualizzazione dell'immagine originale, dell'immagine trasformata con il logaritmo e dell'immagine trasformata con l'esponenziale. Vengono anche visualizzate le funzioni di trasformazione e gli istogrammi corrispondenti.
+
+12. **Discrete Fourier Transform (DFT)**: Calcola la trasformata di Fourier discreta dell'immagine e visualizza la parte reale e immaginaria della trasformata.
 
 Il codice include anche una semplice interfaccia utente a riga di comando che consente all'utente di selezionare e applicare le diverse funzionalità al proprio file immagine di input. Tutte le funzionalità sono implementate utilizzando la libreria OpenCV e NumPy per l'elaborazione delle immagini e la libreria Matplotlib per la visualizzazione.
